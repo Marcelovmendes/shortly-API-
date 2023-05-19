@@ -14,13 +14,12 @@ export async function signUp(req, res) {
     }
    
 }
-export async function sigIn(req, res) {
-    const { email, password } = req.body;
+export async function signIn(req, res) {
+    const {user} = res.locals
     try{
-        const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
-        const token = jwt.sign({userId:user.rows[0].id}, process.env.JWT_SECRET)
+    const token = jwt.sign({userId:user.id}, process.env.JWT_SECRET)
 
-    await db.query(`INSERT INTO sessions (email, password) VALUES ($1, $2, $3)`, [email, password, token])
+    await db.query(`INSERT INTO sessions ("userId", token) VALUES ($1, $2, $3)`, [user.id, token])
 
     res.status(200).send({token})
     }catch(err){

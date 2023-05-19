@@ -15,5 +15,6 @@ export async function validateSign (req,res,next){
   const passwordMatch = bycript.compareSync(password, user.password)
   if(!passwordMatch) return res.status(401).send({ message: "Unauthorized" })
 
+  res.locals.user = user.rows[0]
    next()
 }

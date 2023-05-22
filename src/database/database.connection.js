@@ -1,14 +1,14 @@
 import pg from "pg";
-import dotenv from "dotenv";
-
-const { Pool } = pg;
+import dotenv from "dotenv"
 
 dotenv.config();
 
-const connection = new Pool({
-    
- connectionString: process.env.DATANASE_URL,
-});
- 
+const { Pool } = pg;
 
-export const db = connection 
+const connection = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+//if (process.env.MODE === "prod") configDatabase.ssl = true;
+
+export const db = connection;

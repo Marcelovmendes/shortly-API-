@@ -21,12 +21,12 @@ export async function validateDeleteShorten( req,res,next){
   const session = await db.query('SELECT * FROM sessions WHERE token = $1', [token])
   if(session.rows.length===0) return res.status(401).send({ message: "Session Not Found" })
 const {userId} = session.rows[0]
-console.log(userId)
-console.log(id)
+console.log(userId,"userId")
+console.log(id,"id")
   const userToken = await db.query(`SELECT urls.id,urls."userId" from urls WHERE "id"=$1 AND "userId"=$2` , [id, userId])
- console.log(userToken)
+ console.log(userToken,"userTOken")
 if( userToken.rows[0] === undefined) return res.status(401).send({ message: " unauthorized" })
-  res.locals.userId= userToken.rows[0].url.userId
+  res.locals.userId= userToken.rows[0].userId
 
   next()
 }

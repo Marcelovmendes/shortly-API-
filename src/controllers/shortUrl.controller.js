@@ -16,8 +16,14 @@ export async function postShorten(req, res) {
       `SELECT urls.id, urls."shortCode" FROM urls WHERE "shortCode"=$1 AND "userId"=$2`,
       [shortUrl, userId]
     );
-
-    res.status(201).send(body.rows[0]);
+    const { id, shortCode } = body.rows[0];
+ 
+    res.status(201).send(
+      {
+        id,
+        shortUrl: shortCode
+      },
+    );
   } catch (err) {
     console.log(err);
     res.status(500).send(err.message);

@@ -96,12 +96,12 @@ export async function getUser(req, res) {
       (
         SELECT COALESCE(SUM(url."visitCount"), 0)
         FROM urls url
-        WHERE url."userId" = u.id) as visitCount,
+        WHERE url."userId" = u.id) AS visitCount,
         JSON_AGG(JSON_BUILD_OBJECT(
           'id', url.id,
           'shortUrl', url."shortCode",
           'url', url."originalUrl",
-          'visitCount', url."visitCount"
+          'visitCount', COALESCE(url."visitCount",0)  
         )) as shortenedUrls
       FROM users u
       LEFT JOIN urls url ON u.id = url."userId"

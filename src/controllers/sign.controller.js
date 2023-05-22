@@ -19,9 +19,10 @@ export async function signUp(req, res) {
 export async function signIn(req, res) {
     const {user} = res.locals
     try{
-    const token = jwt.sign({userId:user.id}, process.env.JWT_SECRET)
+    const token = jwt.sign({userId:user.id}, process.env.JWT_SECRET || "secret")
+
     await db.query(`INSERT INTO sessions ("userId", token) VALUES ($1, $2)`, [user.id, token])
- console.log()
+ 
     res.status(200).send({token})
     }catch(err){
         console.log(err)

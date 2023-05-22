@@ -1,4 +1,3 @@
-import { func } from "joi";
 import { db } from "../database/database.connection.js";
 import { nanoid } from "nanoid";
 export async function postShorten(req, res) {
@@ -29,31 +28,38 @@ export async function getUrlById(req, res) {
 
   try {
     const body = await db.query(`SELECT * FROM urls WHERE id=$1`, [id]);
-    if (!body.rows.length === 0)
-      return res.status(404).send({ message: "Not Found" });
+    if (body.rows.length === 0) return res.status(404).send({ message: "Not Found" });
 
-    res.status(200).send(body.rows[0]);
+  
+    const {originalUrl, shortCode} = body.rows[0];    
+    res.status(200).send({
+      id,
+      shortUrl: shortCode,
+      url: originalUrl
+    });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.message);
   }
 }
 export async function redirectUrl(req, res) {
-  const { shortCode } = req.params;
+  const { shortUrl } = req.params;
+  const shortCode = req.params.shortUrl;
+  console.log(shortCode)  
 
   try {
     const result = await db.query(`SELECT * FROM urls WHERE "shortCode"=$1`, [
       shortCode,
     ]);
-    if (result.rows.length === 0)
-      return res.status(404).send({ message: "Not Found" });
+    console.log(result.rows[0].originalUrl)
+    if (result.rows.length === 0) return res.status(404).send({ message: "Not Found" });
 
     const url = result.rows[0].originalUrl;
     const visitCount = result.rows[0].visitCount + 1;
 
-    await db.query(`UPDATE urls SET "shortCode" = $1 WHERE "visitCount" = $2`, [
-      shortCode,
+    await db.query(`UPDATE urls SET "visitCount" = $1 WHERE "shortCode" = $2`, [
       visitCount,
+      shortCode,
     ]);
     res.redirect(url);
   } catch (err) {
@@ -77,7 +83,7 @@ export async function deleteUrl(req, res) {
 }
 export async function getUser(req, res) {
   try {
-    const { userId } = res.locals.session;
+    const { userId } = res.locals;
 
     const result = await db.query(
       `SELECT u.id, u.name,
@@ -106,7 +112,7 @@ export async function getUser(req, res) {
       id: result.rows[0].id,
       name: result.rows[0].name,
       visitCount: parseInt(result.rows[0].visitCount) || 0,
-      shortenedUrls: result.rows[0].shortenedUrls || [],
+      shortenedUrls: result.rows[0].shortenedurls || [],
     };
 
     res.status(200).send(user);
@@ -119,11 +125,11 @@ export async function getUser(req, res) {
 export async function getRanking(req, res) {
   try {
     const ranking = await db.query(
-      `SELECT u.id,u.name,(COUNT(url.id), as linksCount), (CoALESCE(SUM(url."visitCount"), 0))) 
-       FROM users u 
-       LEFT JOIN urls url ON u.id = url."userId" 
-       GROUP BY u.id 
-       ORDER BY visitCount DESC  ) `
+      `SELECT u.id, u.name, COALESCE(COUNT(url.id), 0) AS linksCount, COALESCE(SUM(url."visitCount"), 0) AS visitCount
+       FROM users u
+       LEFT JOIN urls url ON u.id = url."userId"
+       GROUP BY u.id, u.name
+       ORDER BY visitCount DESC`
     );
     const formattedRanking = ranking.rows.map((user) => {
       return {
@@ -134,8 +140,8 @@ export async function getRanking(req, res) {
       };
     });
 
-    res.status(200).send(formattedRanking.rows);
-  } catch {
+    res.status(200).send(formattedRanking);
+  } catch (err){
     res.status(500).send(err.message);
   }
 }

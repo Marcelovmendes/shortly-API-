@@ -117,7 +117,7 @@ export async function getUser(req, res) {
     const user = {
       id: result.rows[0].id,
       name: result.rows[0].name,
-      visitCount: parseInt(result.rows[0].visitCount) || 0,
+      visitCount: parseInt(result.rows[0].visitcount) || 0,
       shortenedUrls: result.rows[0].shortenedurls || [],
     };
 

@@ -96,17 +96,18 @@ export async function getUser(req, res) {
       (
         SELECT COALESCE(SUM(url."visitCount"), 0)
         FROM urls url
-        WHERE url."userId" = u.id) AS visitCount,
-        JSON_AGG(JSON_BUILD_OBJECT(
-          'id', url.id,
-          'shortUrl', url."shortCode",
-          'url', url."originalUrl",
-          'visitCount', COALESCE(url."visitCount",0)  
-        )) as shortenedUrls
+        WHERE url."userId" = u.id
+      ) AS visitCount,
+      JSON_AGG(JSON_BUILD_OBJECT(
+        'id', url.id,
+        'shortUrl', url."shortCode",
+        'url', url."originalUrl",
+        'visitCount', COALESCE(url."visitCount", 0)
+      )) as shortenedUrls
       FROM users u
       LEFT JOIN urls url ON u.id = url."userId"
       WHERE u.id = $1
-      GROUP BY u.id`,
+      GROUP BY u.id, u.name`,
       [userId]
     );
 
@@ -127,7 +128,6 @@ export async function getUser(req, res) {
     res.status(500).send(err.message);
   }
 }
-
 export async function getRanking(req, res) {
   try {
     const ranking = await db.query(

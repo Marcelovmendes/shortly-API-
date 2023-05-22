@@ -3,9 +3,10 @@ import bycript from "bcrypt";
 
 export async function validateSignUp (req, res, next) {
    const {email} = req.body
-   console.log(email)
+
 const userEmailExists = await db.query('SELECT * FROM users WHERE email = $1', [email])
-if(userEmailExists.length>0) return res.status(409).send({ message: "Conflict" }); 
+console.log(userEmailExists.rowCount)
+if(userEmailExists.rowCount !== 0) return res.status(409).send({ message: "Conflict" }); 
 next()
 }
 

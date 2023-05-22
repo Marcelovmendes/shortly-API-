@@ -44,5 +44,13 @@ export async function ValidategetUser(req,res,next){
   res.locals.userId= userId
    next()
 
+}
 
+export async function openUrl (req,res,next){
+  const shortCode = req.params.shortUrl;
+  const result = await db.query(`SELECT * FROM urls WHERE "shortCode"=$1`, [
+    shortCode,])
+    if (result.rows.length === 0) return res.status(404).send({ message: "Not Found" });
+
+    next()
 }

@@ -50,16 +50,12 @@ export async function getUrlById(req, res) {
 }
 export async function redirectUrl(req, res) {
   const { shortUrl } = req.params;
-  const shortCode = req.params.shortUrl;
-  console.log(shortCode)  
+  const shortCode = req.params.shortUrl; 
 
   try {
     const result = await db.query(`SELECT * FROM urls WHERE "shortCode"=$1`, [
       shortCode,
     ]);
-    console.log(result.rows[0].originalUrl)
-    if (result.rows.length === 0) return res.status(404).send({ message: "Not Found" });
-
     const url = result.rows[0].originalUrl;
     const visitCount = result.rows[0].visitCount + 1;
 

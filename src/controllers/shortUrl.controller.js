@@ -1,5 +1,5 @@
-import { db } from "../database/database.connection.js";
-import { nanoid } from "nanoid";
+import { db } from '../database/database.connection.js';
+import { nanoid } from 'nanoid';
 export async function postShorten(req, res) {
   const { url } = req.body;
   const { session } = res.locals;
@@ -10,20 +10,18 @@ export async function postShorten(req, res) {
 
     await db.query(
       `INSERT INTO urls ("originalUrl", "shortCode", "userId") VALUES ($1, $2, $3)`,
-      [url, shortUrl, userId]
+      [url, shortUrl, userId],
     );
     const body = await db.query(
       `SELECT urls.id, urls."shortCode" FROM urls WHERE "shortCode"=$1 AND "userId"=$2`,
-      [shortUrl, userId]
+      [shortUrl, userId],
     );
     const { id, shortCode } = body.rows[0];
- 
-    res.status(201).send(
-      {
-        id,
-        shortUrl: shortCode
-      },
-    );
+
+    res.status(201).send({
+      id,
+      shortUrl: shortCode,
+    });
   } catch (err) {
     console.log(err);
     res.status(500).send(err.message);
@@ -34,14 +32,14 @@ export async function getUrlById(req, res) {
 
   try {
     const body = await db.query(`SELECT * FROM urls WHERE id=$1`, [id]);
-    if (body.rows.length === 0) return res.status(404).send({ message: "Not Found" });
+    if (body.rows.length === 0)
+      return res.status(404).send({ message: 'Not Found' });
 
-  
-    const {originalUrl, shortCode} = body.rows[0];    
+    const { originalUrl, shortCode } = body.rows[0];
     res.status(200).send({
       id,
       shortUrl: shortCode,
-      url: originalUrl
+      url: originalUrl,
     });
   } catch (err) {
     console.log(err);
@@ -50,7 +48,7 @@ export async function getUrlById(req, res) {
 }
 export async function redirectUrl(req, res) {
   const { shortUrl } = req.params;
-  const shortCode = req.params.shortUrl; 
+  const shortCode = req.params.shortUrl;
 
   try {
     const result = await db.query(`SELECT * FROM urls WHERE "shortCode"=$1`, [
@@ -75,7 +73,7 @@ export async function deleteUrl(req, res) {
   try {
     const result = await db.query(`DELETE FROM urls WHERE id=$1`, [id]);
 
-    if (!result) return res.status(404).send({ message: "Not Found" });
+    if (!result) return res.status(404).send({ message: 'Not Found' });
 
     res.sendStatus(204);
   } catch (err) {
@@ -104,11 +102,11 @@ export async function getUser(req, res) {
       LEFT JOIN urls url ON u.id = url."userId"
       WHERE u.id = $1
       GROUP BY u.id, u.name`,
-      [userId]
+      [userId],
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).send({ message: "User not found" });
+      return res.status(404).send({ message: 'User not found' });
     }
 
     const user = {
@@ -132,7 +130,7 @@ export async function getRanking(req, res) {
        LEFT JOIN urls url ON u.id = url."userId"
        GROUP BY u.id, u.name
        ORDER BY visitCount DESC
-       LIMIT 10`
+       LIMIT 10`,
     );
     const formattedRanking = ranking.rows.map((user) => {
       return {
@@ -144,7 +142,7 @@ export async function getRanking(req, res) {
     });
 
     res.status(200).send(formattedRanking);
-  } catch (err){
+  } catch (err) {
     res.status(500).send(err.message);
   }
 }
